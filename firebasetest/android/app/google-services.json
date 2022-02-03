@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "231521168257",
+    "project_id": "veteriner-ea61b",
+    "storage_bucket": "veteriner-ea61b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:231521168257:android:a6f863336c5b0df1469680",
+        "android_client_info": {
+          "package_name": "com.example.firebasetest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "231521168257-50p7bd0gqq1pm0mtabkub8ofks0ddgr0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCukzerkZtUsrBiH9UdyTAEtnVC9HQJ630"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "231521168257-50p7bd0gqq1pm0mtabkub8ofks0ddgr0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
