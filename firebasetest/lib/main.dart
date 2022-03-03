@@ -1,10 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebasetest/core/model/data.dart';
+import 'package:firebasetest/core/model/tedavimodel.dart';
 import 'package:firebasetest/post_view.dart';
+import 'package:firebasetest/service/tedaviservice.dart';
+import 'package:firebasetest/yatan_hasta.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:lottie/lottie.dart';
+
+import 'create_user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,6 +47,7 @@ class MyApp extends StatelessWidget {
 
 class HomePage extends StatefulWidget {
   final bool onwill;
+  
   HomePage({Key? key, required this.onwill}) : super(key: key);
 
   @override
@@ -49,21 +55,27 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static List<tedaviModelfire> tedavimodelfire = [];
+  String name = "";
+
   final Stream<QuerySnapshot> tedaviler =
       FirebaseFirestore.instance.collection('tedaviler').snapshots();
   TextEditingController editingController = TextEditingController();
+  late QuerySnapshot<Object?> data;
   @override
-  void initState() {
+  void initState()  {
     // TODO: implement initState
     super.initState();
     if (widget.onwill == true) {
       postlist = [];
+      
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () {
@@ -77,19 +89,22 @@ class _HomePageState extends State<HomePage> {
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      appBar: AppBar(title: Text("Tedaviler",textAlign: TextAlign.center,),centerTitle: true,backgroundColor: Color(0xff7247d4),),
       body: SafeArea(
         child: Column(
           children: [
             Container(
               child: TextField(
-                onChanged: (value) {},
+                onChanged: (value) {
+                  name = value;
+                  setState(() {});
+                },
                 controller: editingController,
                 decoration: InputDecoration(
                     labelText: "Tedavi Ara",
-                    hintText: "Sınavı olduğun tarihi yaz",
+                    hintText: "Tedavi İsmi Yazın",
                     prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10.0)))),
+                    ),
               ),
             ),
             Expanded(
@@ -110,9 +125,40 @@ class _HomePageState extends State<HomePage> {
                         ),
                       );
                     }
-                    final data = snapshot.requireData;
+                    tedavimodelfire = [];
+                    data = snapshot.requireData;
+                    List<tedaviModel1> eklenecek = [];
+                    List<tedaviModel1> eklenecekUstfield = [];
+                    for (int i = 0;i<data.size;i++){
+                      for(var temp in data.docs[i]["value"]){
+                         tedaviModel1 test1 = tedaviModel1(id: temp['id'].toString(),name: temp['name'].toString(),price: temp['price'].toString(),skt: temp['skt'],stok: temp['stok'].toString());
+                          if(test1.name!.contains(name)&&name != ""){
+                            eklenecek.add(test1);
+                            debugPrint(test1.skt.toString()+"srtokkkk");
+                          }
+                          if(name==null||name==""){
+                            eklenecek.add(test1);
+                            
+                          }
+                          eklenecekUstfield.add(test1);
+                          UstFiled(eklenecekUstfield);
+                          
+                      }
+                      if(!eklenecek.isEmpty){
+                        tedavimodelfire.add(tedaviModelfire(type: data.docs[i]['type'],subtitle: eklenecek,id: data.docs[i]['id']));
+                        debugPrint(data.docs[i]['id']);
+                      eklenecek = [];
+                      }
+                      eklenecek = [];
+                      
+                    }
+                    for(var temp in tedavimodelfire){
+                        for(int i =0;i<temp.subtitle!.length;i++){
+                          debugPrint(temp.subtitle![i].skt);
+                        }
+                    }
                     return ListView.builder(
-                      itemCount: data.size,
+                      itemCount: tedavimodelfire.length,
                       itemBuilder: (context, index) {
                         return Container(
                           margin: const EdgeInsets.symmetric(
@@ -123,10 +169,10 @@ class _HomePageState extends State<HomePage> {
                             borderRadius: BorderRadius.circular(30),
                           ),
                           child: ExpansionTile(
-                            title: Container(
+                            title:  Container(
                                 child: Center(
                                     child: Text(
-                              data.docs[index]['type'],
+                            tedavimodelfire[index].type.toString(),
                               style: const TextStyle(
                                   color: Colors.black, fontSize: 20),
                             ))),
@@ -161,10 +207,9 @@ class _HomePageState extends State<HomePage> {
                                   //    ))
                                   //.toList())
 
-                                  children: _createDownList(
-                                      data.docs[index]["value"]),
+                                  children: _createDownList(tedavimodelfire[index].subtitle,tedavimodelfire[index].id)),
                                 ),
-                              )
+                              
                             ],
                           ),
                         );
@@ -185,6 +230,57 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+
+      drawer:   Drawer(
+        backgroundColor: Color(0xff7247d4) ,
+        elevation: 10.0,
+        child: ListView(
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Color(0xff7247d4)
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  CircleAvatar(
+                  backgroundImage: AssetImage('assets/animation/icon.png'),
+                  backgroundColor: Colors.transparent,
+                  radius: 40.0,
+                ),
+
+                
+                  
+                ],
+              ),
+            ),
+             ListTile(
+              leading: Icon(Icons.add,color: Colors.white,),
+              title: Text('Yeni Kullanıcı Ekle', style: TextStyle(fontSize: 18,color: Colors.white)),
+              onTap: () {
+                Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => creteUser()),
+          );
+
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.home,color: Colors.white,),
+              title: Text('Yatan Hastalar', style: TextStyle(fontSize: 18,color: Colors.white)),
+              onTap: () {
+                Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => yatanHasta()),
+          );
+
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -192,17 +288,69 @@ class _HomePageState extends State<HomePage> {
   late String _selectedIndex;
   late List<tedaviModel> _listem;
   static late List<tedaviModel> postlist = [];
-  _createDownList(var currentTedavi) {
+  _createDownList(var currentTedavi,var ustKategori) {
     List<Widget> columnContent = [];
-    List<tedaviModel> model = [];
-    for (var temp in currentTedavi) {
+    
+    for(var i = 0;i<currentTedavi.length;i++){
+      columnContent.add(Container(
+        decoration: BoxDecoration(
+            color: Color(0xff7247d4),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white)),
+        height: MediaQuery.of(context).size.height * 0.07,
+        child: InkWell(
+            onTap: () async {
+              tedaviModel asd = tedaviModel(currentTedavi[i].price.toString(),
+                  currentTedavi[i].name.toString(), currentTedavi[i].id.toString(),currentTedavi[i].skt.toString(),currentTedavi[i].stok.toString(),ustKategori);
+              postlist.add(asd);
+              
+              setState(() {
+                _selectedIndex = currentTedavi[i].name.toString();
+                onPressed = true;
+              });
+              await Future.delayed(const Duration(milliseconds: 400));
+              setState(() {
+                onPressed = false;
+              });
+            },
+            child: onPressed && currentTedavi[i].name.toString() == _selectedIndex
+                ? LottieBuilder.asset(
+                    "assets/animation/add-to-medic.json",
+                  )
+                : Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Text(
+                        currentTedavi[i].name.toString(),
+                        style: TextStyle(color: Colors.white,fontSize: 22),
+                  ),
+                  Text(
+                        currentTedavi[i].price.toString()+"TL",
+                        style: TextStyle(color: Colors.white,fontSize: 17),
+                  ),
+                      ],
+                    ))),
+      ));
+    }
+    return columnContent.toList();
+
+
+    /*for (var temp in currentTedavi) {
       tedaviModel asd = tedaviModel(temp['price'].toString(),
           temp['name'].toString(), temp['id'].toString());
-      model.add(asd);
+      if(name != "" && name != null){
+      if(temp['name']==name){
+          model.add(asd);
+        }
+      }else{
+        model.add(asd);
+      }
+        
     }
     doldur(model);
 
-    debugPrint(model[0].name.toString());
+  
 
     for (int i = 0; i < model.length; i++) {
       columnContent.add(Container(
@@ -216,7 +364,7 @@ class _HomePageState extends State<HomePage> {
               tedaviModel asd = tedaviModel(model[i].price.toString(),
                   model[i].name.toString(), model[i].id.toString());
               postlist.add(asd);
-              debugPrint(postlist.toString());
+              
               setState(() {
                 _selectedIndex = model[i].name.toString();
                 onPressed = true;
@@ -238,14 +386,24 @@ class _HomePageState extends State<HomePage> {
       ));
     }
 
-    return columnContent.toList();
+    return columnContent.toList();*/
   }
 }
 
+class anamodel{
+  String? type;
+  List<tedaviModel>? tedavileri;
+  anamodel(this.type,this.tedavileri);
+}
+
 class tedaviModel {
+  String? ustId;
   String? price;
   String? name;
   String? id;
+  String? skt;
+  String? stok;
+  
 
-  tedaviModel(this.price, this.name, this.id);
+  tedaviModel(this.price, this.name, this.id,this.skt,this.stok,this.ustId);
 }
